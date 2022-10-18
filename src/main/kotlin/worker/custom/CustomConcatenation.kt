@@ -1,5 +1,6 @@
 package worker.custom
 
+import kotlinx.coroutines.delay
 import util.Result
 import worker.Worker
 import kotlin.random.Random
@@ -34,6 +35,7 @@ class CustomConcatenation : Worker {
                         this.append("A")
                     }
                 }
+                delay(100000000L)
                 Result.Success(value = ans)
             }
         }

@@ -6,7 +6,7 @@ import util.toResult
 import worker.Worker
 import java.util.*
 
-class ConcatenationAdapter : Worker {
+class BasicConcatenation : Worker {
     override suspend fun processF(getParameter: suspend () -> Int): Result {
         val parameter: Int = getParameter()
         return getResultFromFuture { Concatenation.trialF(parameter) }
