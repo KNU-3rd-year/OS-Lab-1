@@ -11,25 +11,19 @@ import java.util.concurrent.*
 class ConcatenationAdapter(
     private val executor: ExecutorService = Executors.newSingleThreadExecutor()
 ) : Worker() {
-    override suspend fun processF(parameter: Int): Result {
-        val future = executor.submit { Concatenation.trialF(parameter) }
-            as? Future<Optional<String>>
-            ?: return Result.HardFailure(cause = IllegalArgumentException())
-
-        return getResultFromFuture(future = future)
+    override suspend fun processF(getParameter: suspend () -> Int): Result {
+        val parameter: Int = getParameter()
+        return getResultFromFuture { Concatenation.trialF(parameter) }
     }
 
-    override suspend fun processG(parameter: Int): Result {
-        val future = executor.submit { Concatenation.trialG(parameter) }
-            as? Future<Optional<String>>
-            ?: return Result.HardFailure(cause = IllegalArgumentException())
-
-        return getResultFromFuture(future = future)
+    override suspend fun processG(getParameter: suspend () -> Int): Result {
+        val parameter: Int = getParameter()
+        return getResultFromFuture { Concatenation.trialG(parameter) }
     }
 
-    private fun getResultFromFuture(future: Future<Optional<String>>): Result {
+    private fun getResultFromFuture(getOptional: () -> Optional<String>): Result {
         return try {
-            val result = future.get(timeout, TimeUnit.MILLISECONDS)
+            val result = getOptional()
             if (!result.isPresent) {
                 Result.HardFailure(cause = IllegalArgumentException())
             }

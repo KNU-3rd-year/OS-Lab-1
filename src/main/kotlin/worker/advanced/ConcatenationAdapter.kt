@@ -1,5 +1,7 @@
 package worker.advanced
 
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import os.lab1.compfuncs.advanced.Concatenation
 import util.Result
 import util.toResult
@@ -12,25 +14,19 @@ import java.util.concurrent.*
 class ConcatenationAdapter(
     private val executor: ExecutorService = Executors.newSingleThreadExecutor()
 ) : Worker() {
-    override suspend fun processF(parameter: Int): Result {
-        val future = executor.submit { Concatenation.trialF(parameter) }
-            as? Future<Optional<Optional<String>>>
-            ?: return Result.HardFailure(cause = IllegalArgumentException())
-
-        return getResultFromFuture(future = future)
+    override suspend fun processF(getParameter: suspend () -> Int): Result {
+        val parameter: Int = getParameter()
+        return getResultFromFuture { Concatenation.trialF(parameter) }
     }
 
-    override suspend fun processG(parameter: Int): Result {
-        val future = executor.submit { Concatenation.trialG(parameter) }
-            as? Future<Optional<Optional<String>>>
-            ?: return Result.HardFailure(cause = IllegalArgumentException())
-
-        return getResultFromFuture(future = future)
+    override suspend fun processG(getParameter: suspend () -> Int): Result {
+        val parameter: Int = getParameter()
+        return getResultFromFuture { Concatenation.trialG(parameter) }
     }
 
-    private fun getResultFromFuture(future: Future<Optional<Optional<String>>>): Result {
+    private fun getResultFromFuture(getOptional: () -> Optional<Optional<String>>): Result {
         return try {
-            val optionalResult = future.get(timeout, TimeUnit.MILLISECONDS)
+            val optionalResult = getOptional()
             if (!optionalResult.isPresent) {
                 Result.SoftFailure(cause = IllegalArgumentException())
             }

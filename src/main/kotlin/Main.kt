@@ -1,13 +1,16 @@
+import kotlinx.coroutines.*
 import manager.Manager
-import worker.advanced.ConcatenationAdapter
+import worker.custom.CustomConcatenation
 import kotlin.system.exitProcess
 
-fun main() {
+fun main() = runBlocking {
     val manager = Manager()
-    manager.start(
+    val asink = manager.start(
         parameter = getParameter(),
-        worker = ConcatenationAdapter()
+        worker = CustomConcatenation()
     )
+    asink.await()
+    startAgain()
 }
 
 private fun getParameter(): Int {
@@ -42,4 +45,16 @@ private fun realIntArg(tries: Int = 0): Int {
 
     println("Your input is $x")
     return x
+}
+
+fun startAgain() {
+    print("Do you want to try again with another parameter? To proceed enter \"y\": ")
+    val responce = readlnOrNull()?.equals("y") ?: false
+
+    if (responce) {
+        println("Let's start again!\n")
+        main()
+    } else {
+        println("See you next time!")
+    }
 }
