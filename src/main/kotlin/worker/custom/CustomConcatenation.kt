@@ -8,7 +8,7 @@ class CustomConcatenation : Worker {
     override suspend fun processF(getParameter: suspend () -> Int): Result {
         val parameter: Int = getParameter()
         val random = Random.Default
-        return when (random.nextInt(10)) {
+        return when (random.nextInt(4)) {
             0 -> Result.HardFailure(cause = IllegalStateException())
             1 -> Result.SoftFailure(cause = IllegalArgumentException())
             else -> {
@@ -25,7 +25,7 @@ class CustomConcatenation : Worker {
     override suspend fun processG(getParameter: suspend () -> Int): Result {
         val parameter: Int = getParameter()
         val random = Random.Default
-        return when (random.nextInt(10)) {
+        return when (random.nextInt(4)) {
             0 -> Result.HardFailure(cause = IllegalStateException())
             1 -> Result.SoftFailure(cause = IllegalArgumentException())
             else -> {

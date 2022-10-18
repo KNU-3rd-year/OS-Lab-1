@@ -48,7 +48,7 @@ private fun realIntArg(tries: Int = 0): Int {
 }
 
 fun startAgain() {
-    print("Do you want to try again with another parameter? To proceed enter \"y\": ")
+    print("\nDo you want to try again with another parameter? To proceed enter \"y\": ")
     val responce = readlnOrNull()?.equals("y") ?: false
 
     if (responce) {
