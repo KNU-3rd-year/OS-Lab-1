@@ -1,7 +1,45 @@
-fun main(args: Array<String>) {
-    println("Hello World!")
+import manager.Manager
+import worker.advanced.ConcatenationAdapter
+import kotlin.system.exitProcess
 
-    // Try adding program arguments via Run/Debug configuration.
-    // Learn more about running applications: https://www.jetbrains.com/help/idea/running-applications.html.
-    println("Program arguments: ${args.joinToString()}")
+fun main() {
+    val manager = Manager()
+    manager.start(
+        parameter = getParameter(),
+        worker = ConcatenationAdapter()
+    )
+}
+
+private fun getParameter(): Int {
+    printDetails()
+    return realIntArg()
+}
+
+private fun printDetails() {
+    println("You will be asked to enter the \'x\' parameter as the input parameter to this program.")
+    println("You may enter many numbers or words, but the first int-type value would be accepted.")
+    println("If there will be no int-type value typed then you will be given one more try, but not more than 2 times.")
+    println()
+}
+
+private fun realIntArg(tries: Int = 0): Int {
+    if (tries >= 3) {
+        println("\nWe am sorry, but the input is still not correct. The program will be stopped.")
+        exitProcess(1)
+    } else if (tries > 0) {
+        println(" Please, try one more time.")
+    }
+
+    print("Please, enter the x parameter: ")
+    val x = readlnOrNull()
+        ?.split(' ')
+        ?.mapNotNull { it.toIntOrNull() }
+        ?.firstOrNull()
+        ?: run {
+            print("Ooops, seems like your input is not correct.")
+            realIntArg(tries = tries + 1)
+        }
+
+    println("Your input is $x")
+    return x
 }
