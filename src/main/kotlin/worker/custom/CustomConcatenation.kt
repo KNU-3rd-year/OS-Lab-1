@@ -2,10 +2,9 @@ package worker.custom
 
 import util.Result
 import worker.Worker
-import java.lang.IllegalArgumentException
 import kotlin.random.Random
 
-class CustomConcatenation : Worker() {
+class CustomConcatenation : Worker {
     override suspend fun processF(getParameter: suspend () -> Int): Result {
         val parameter: Int = getParameter()
         val random = Random.Default

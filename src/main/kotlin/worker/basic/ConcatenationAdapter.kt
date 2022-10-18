@@ -4,13 +4,9 @@ import os.lab1.compfuncs.basic.Concatenation
 import util.Result
 import util.toResult
 import worker.Worker
-import java.lang.IllegalArgumentException
 import java.util.*
-import java.util.concurrent.*
 
-class ConcatenationAdapter(
-    private val executor: ExecutorService = Executors.newSingleThreadExecutor()
-) : Worker() {
+class ConcatenationAdapter : Worker {
     override suspend fun processF(getParameter: suspend () -> Int): Result {
         val parameter: Int = getParameter()
         return getResultFromFuture { Concatenation.trialF(parameter) }
