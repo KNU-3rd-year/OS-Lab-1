@@ -12,9 +12,10 @@ class CustomConcatenation : Worker {
             0 -> Result.HardFailure(cause = IllegalStateException())
             1 -> Result.SoftFailure(cause = IllegalArgumentException())
             else -> {
-                val ans = ""
-                repeat(parameter) {
-                    ans.plus("a")
+                val ans = buildString {
+                    while (this.length < parameter) {
+                        this.append("a")
+                    }
                 }
                 Result.Success(value = ans)
             }
@@ -28,9 +29,10 @@ class CustomConcatenation : Worker {
             0 -> Result.HardFailure(cause = IllegalStateException())
             1 -> Result.SoftFailure(cause = IllegalArgumentException())
             else -> {
-                val ans = ""
-                repeat(parameter) {
-                    ans.plus("A")
+                val ans = buildString {
+                    while (this.length < parameter) {
+                        this.append("A")
+                    }
                 }
                 Result.Success(value = ans)
             }

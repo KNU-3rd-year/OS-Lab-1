@@ -3,7 +3,6 @@ package manager
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import startAgain
 import util.Result
 import worker.Worker
 
@@ -34,7 +33,7 @@ class Manager {
                 }
             }
             val _g = scope.launch {
-                val res = f.await()
+                val res = g.await()
                 if (res == null) {
                     f.cancel()
                     // TODO: write comment that this was canceled
