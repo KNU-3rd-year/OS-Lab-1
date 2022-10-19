@@ -34,7 +34,6 @@ class CustomConcatenation : Worker {
                         this.append("A")
                     }
                 }
-                //delay(100000000L)
                 WorkerResult.Success(value = ans)
             }
         }

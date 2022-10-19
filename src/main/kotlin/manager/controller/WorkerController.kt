@@ -1,11 +1,15 @@
 package manager.controller
 
+import kotlinx.coroutines.isActive
 import util.coroutineName
 import worker.WorkerResult
+import kotlin.coroutines.coroutineContext
 
 class WorkerController {
 
     suspend fun compute(tries: Int, getWorkerResult: suspend () -> WorkerResult): ControllerResult {
+        if (!coroutineContext.isActive) return ControllerResult.Failure(cause = IllegalStateException())
+
         val result = getWorkerResult()
         return when (result) {
             is WorkerResult.Success -> {
@@ -21,6 +25,8 @@ class WorkerController {
     }
 
     private suspend fun handleSoftFailure(tries: Int, getWorkerResult: suspend () -> WorkerResult): ControllerResult {
+        if (!coroutineContext.isActive) return ControllerResult.Failure(cause = IllegalStateException())
+
         println("The function $coroutineName has finished its work with the soft failure.")
         return if (tries < 3) {
             println("The function $coroutineName re-started working (${tries + 1} time).")

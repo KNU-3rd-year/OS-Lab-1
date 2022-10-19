@@ -1,7 +1,5 @@
 package worker
 
-import kotlinx.coroutines.TimeoutCancellationException
-import java.util.NoSuchElementException
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeoutException
 
@@ -17,7 +15,6 @@ fun Exception.toResult(): WorkerResult {
         is InterruptedException -> WorkerResult.SoftFailure(cause = this)
         is TimeoutException -> WorkerResult.SoftFailure(cause = this)
         is NoSuchElementException -> WorkerResult.SoftFailure(cause = this)
-        is TimeoutCancellationException -> WorkerResult.SoftFailure(cause = this)
 
         else -> WorkerResult.HardFailure(cause = this)
     }

@@ -10,9 +10,9 @@ import worker.Worker
 
 class Manager {
     fun start(parameter: Int, worker: Worker): Job {
-        val scope = CoroutineScope(context = Dispatchers.IO)
+        val scope = CoroutineScope(context = Dispatchers.Default)
 
-        return scope.launch(CoroutineName("return")) {
+        return scope.launch(CoroutineName("manager")) {
             when (val result = coordinate(parameter, worker)) {
                 is CalculationResult.Failure -> {
                     println("The functions G and F has finished their work with the failure.")
@@ -46,8 +46,14 @@ class Manager {
 
         while (true) {
             when (val state = fsm.getState()) {
-                is FSM.State.BothFunctionsCompleted -> return CalculationResult.Success(fValue = state.fValue, gValue = state.gValue)
-                is FSM.State.Failure -> return CalculationResult.Failure(cause = state.cause)
+                is FSM.State.BothFunctionsCompleted -> {
+                    scope.cancel()
+                    return CalculationResult.Success(fValue = state.fValue, gValue = state.gValue)
+                }
+                is FSM.State.Failure -> {
+                    scope.cancel()
+                    return CalculationResult.Failure(cause = state.cause)
+                }
                 is FSM.State.FunctionFCompleted,
                 is FSM.State.FunctionGCompleted,
                 is FSM.State.NoFunctionCompleted -> delay(1)
