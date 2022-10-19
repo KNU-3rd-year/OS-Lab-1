@@ -1,30 +1,31 @@
 package worker.basic
 
+import kotlinx.coroutines.withTimeout
 import os.lab1.compfuncs.basic.Concatenation
-import util.Result
-import util.toResult
 import worker.Worker
+import worker.WorkerResult
+import worker.toResult
 import java.util.*
 
 class BasicConcatenation : Worker {
-    override suspend fun processF(getParameter: suspend () -> Int): Result {
+    override suspend fun processF(getParameter: suspend () -> Int): WorkerResult {
         val parameter: Int = getParameter()
         return getResultFromFuture { Concatenation.trialF(parameter) }
     }
 
-    override suspend fun processG(getParameter: suspend () -> Int): Result {
+    override suspend fun processG(getParameter: suspend () -> Int): WorkerResult {
         val parameter: Int = getParameter()
         return getResultFromFuture { Concatenation.trialG(parameter) }
     }
 
-    private fun getResultFromFuture(getOptional: () -> Optional<String>): Result {
+    private suspend fun getResultFromFuture(getOptional: () -> Optional<String>): WorkerResult {
         return try {
-            val result = getOptional()
+            val result = withTimeout(1_000L) { getOptional() }
             if (!result.isPresent) {
-                Result.HardFailure(cause = IllegalArgumentException())
+                WorkerResult.HardFailure(cause = IllegalArgumentException())
             }
 
-            Result.Success(value = result.get())
+            WorkerResult.Success(value = result.get())
         } catch (e: Exception) {
             e.toResult()
         }

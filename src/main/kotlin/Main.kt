@@ -1,15 +1,14 @@
-import kotlinx.coroutines.*
+import kotlinx.coroutines.runBlocking
 import manager.Manager
-import worker.custom.CustomConcatenation
+import worker.advanced.AdvancedConcatenation
 import kotlin.system.exitProcess
 
 fun main() = runBlocking {
     val manager = Manager()
-    val asink = manager.start(
+    manager.start(
         parameter = getParameter(),
-        worker = CustomConcatenation()
-    )
-    asink.await()
+        worker = AdvancedConcatenation()
+    ).join()
     startAgain()
 }
 

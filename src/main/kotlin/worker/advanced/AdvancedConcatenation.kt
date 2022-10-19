@@ -2,36 +2,38 @@ package worker.advanced
 
 import kotlinx.coroutines.withTimeout
 import os.lab1.compfuncs.advanced.Concatenation
-import util.Result
-import util.toResult
+import util.coroutineName
 import worker.Worker
+import worker.WorkerResult
+import worker.toResult
 import java.util.*
 
 
 class AdvancedConcatenation : Worker {
-    override suspend fun processF(getParameter: suspend () -> Int): Result {
-        val parameter: Int = getParameter()
-        return getResultFromFuture { Concatenation.trialF(parameter) }
+    override suspend fun processF(getParameter: suspend () -> Int): WorkerResult {
+        return getResultFromFuture { Concatenation.trialF(getParameter()) }
     }
 
-    override suspend fun processG(getParameter: suspend () -> Int): Result {
-        val parameter: Int = getParameter()
-        return getResultFromFuture { Concatenation.trialG(parameter) }
+    override suspend fun processG(getParameter: suspend () -> Int): WorkerResult {
+        return getResultFromFuture { Concatenation.trialG(getParameter()) }
     }
 
-    private suspend fun getResultFromFuture(getOptional: () -> Optional<Optional<String>>): Result {
+    private suspend fun getResultFromFuture(getOptional: suspend () -> Optional<Optional<String>>): WorkerResult {
         return try {
-            val optionalResult = withTimeout(4000L) { getOptional() }
+            println("Coroutine $coroutineName try to got the value from Concatenation (advanced).")
+            val optionalResult = withTimeout(1000L) { getOptional() }
+            println("Coroutine $coroutineName has got the value from Concatenation (advanced).")
+
             if (!optionalResult.isPresent) {
-                Result.SoftFailure(cause = IllegalArgumentException())
+                WorkerResult.SoftFailure(cause = IllegalArgumentException())
             }
 
             val result = optionalResult.get()
             if (!result.isPresent) {
-                Result.HardFailure(cause = IllegalArgumentException())
+                WorkerResult.HardFailure(cause = IllegalArgumentException())
             }
 
-            Result.Success(value = result.get())
+            WorkerResult.Success(value = result.get())
         } catch (e: Exception) {
             e.toResult()
         }
