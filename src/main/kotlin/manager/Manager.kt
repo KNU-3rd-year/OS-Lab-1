@@ -82,5 +82,6 @@ class Manager(
 
     private fun removeCancelListener() {
         keyboardHook.removeKeyListener(globalKeyAdapter)
+        keyboardHook.shutdownHook()
     }
 }
