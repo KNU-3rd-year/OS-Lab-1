@@ -29,7 +29,7 @@ class BasicConcatenation(private val timeout: Long = 4_000L) : Worker {
                 delay(timeout)
                 if (isActive) {
                     println("Coroutine $coroutineName is running for too long. The TimeoutException has been thrown!")
-                    throw TimeoutException()
+                    throw TimeoutException("Timed out waiting for $timeout ms")
                 }
             }
 
