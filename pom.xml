@@ -92,6 +92,11 @@
             <systemPath>${project.basedir}/src/main/resources/lab1.jar</systemPath>
         </dependency>
         <dependency>
+            <groupId>lc.kra.system</groupId>
+            <artifactId>system-hook</artifactId>
+            <version>3.8</version>
+        </dependency>
+        <dependency>
             <groupId>org.jetbrains.kotlinx</groupId>
             <artifactId>kotlinx-coroutines-core</artifactId>
             <version>1.6.4</version>
