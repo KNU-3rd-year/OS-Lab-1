@@ -31,7 +31,7 @@ class Manager(
         }
     }
 
-    fun exe(parameter: Int, worker: Worker) = managerScope.launch {
+    fun exe(parameter: Int, worker: Worker) = managerScope.launch(CoroutineName("manager")) {
         addCancelListener()
 
         when (val result = coordinate(parameter, worker)) {
@@ -83,7 +83,7 @@ class Manager(
         val pauseTimeout = 5_000L
         pausingDispatchQueue.pause()
         removeCancelListener()
-        CoroutineScope(Dispatchers.Default).launch(CoroutineName("manager-timeout")) {
+        managerScope.launch(CoroutineName("manager-timeout")) {
             val shouldCancel = withForceTimeoutOrNull(pauseTimeout) {
                 println()
                 println("Timed out waiting for $pauseTimeout ms.")
@@ -101,6 +101,7 @@ class Manager(
                 null -> {
                     println()
                     println("The action is not confirmed within 5 seconds.")
+                    println("Proceeding the program...")
                     addCancelListener()
                     pausingDispatchQueue.resume()
                 }

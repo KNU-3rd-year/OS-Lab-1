@@ -1,11 +1,7 @@
 package worker.basic
 
-import kotlinx.coroutines.async
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.supervisorScope
 import os.lab1.compfuncs.basic.Concatenation
-import util.coroutineName
+import util.withForceTimeoutOrNull
 import worker.Worker
 import worker.WorkerResult
 import worker.toResult
@@ -24,21 +20,9 @@ class BasicConcatenation(private val timeout: Long = 4_000L) : Worker {
     }
 
     private suspend fun getResultFromFuture(getOptional: () -> Optional<String>): WorkerResult {
-        return supervisorScope {
-            val def = async {
-                delay(timeout)
-                if (isActive) {
-                    println("Coroutine $coroutineName is running for too long. The TimeoutException has been thrown!")
-                    throw TimeoutException("Timed out waiting for $timeout ms")
-                }
-            }
-
+        return withForceTimeoutOrNull(timeout) {
             try {
-                println("Coroutine $coroutineName try to got the value from Concatenation (basic).")
-                def.await()
                 val result = getOptional()
-                def.cancel()
-                println("Coroutine $coroutineName has got the value from Concatenation (basic).")
 
                 if (!result.isPresent) {
                     WorkerResult.HardFailure(cause = IllegalArgumentException())
@@ -48,6 +32,6 @@ class BasicConcatenation(private val timeout: Long = 4_000L) : Worker {
             } catch (e: Exception) {
                 e.toResult()
             }
-        }
+        } ?: WorkerResult.SoftFailure(cause = TimeoutException("Timed out waiting for $timeout ms."))
     }
 }

@@ -9,7 +9,6 @@ fun main(): Unit = runBlocking {
         parameter = getParameter(),
         worker = AdvancedConcatenation()
     ).join()
-    //startAgain()
 }
 
 private fun getParameter(): Int {
@@ -44,16 +43,4 @@ private fun realIntArg(tries: Int = 0): Int {
 
     println("Your input is $x")
     return x
-}
-
-fun startAgain() {
-    print("\nDo you want to try again with another parameter? To proceed enter \"y\": ")
-    val responce = readlnOrNull()?.equals("y") ?: false
-
-    if (responce) {
-        println("Let's start again!\n")
-        main()
-    } else {
-        println("See you next time!")
-    }
 }
