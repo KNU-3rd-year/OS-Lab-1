@@ -40,14 +40,21 @@ For a given input col with one of following results:
  - soft fail - obtaining value is still possible;
  - hard fail (worst-case scenario) - function always fails for given input.
 
-**The way I handle it:** 
+**The way it is handled:** 
 corresponding computation is restarted after soft fail, this continues until value is obtained or maximum amount of 
 attempts is reached with the result of corresponding computation considered a failure.
 
 As usual function may return no result at all.
 
 ### Cancellation
-It is done by hard reset with the Q key.
+It is possible to quit the program with the Q key.
+Also, it is possible to initiate cancellation dialog by the special key. 
+Its purpose is to confirm user decision to cancel the computation. 
+It is active only within certain predefined time frame (e.g. 5 seconds). 
+The user prompt reads: "Please confirm that computation should be stopped y". 
+Picked option is reported to the user and computation is cancelled if this was the case. 
+If user does not respond in time frame then "action is not confirmed within <time>. proceeding..." is reported. 
+If answer is obtained during the time frame the "overridden by system" message should appear and answer is reported as usual.
 
 ### Expression value
 If computations f and g return value then expression value is the result of binary operation over this two values. 
@@ -68,9 +75,6 @@ Result should be reported as soon as possible for one exception.
 If the periodic cancellation is implemented then computation output must **not intervene** in user prompt, 
 i.e. all updates should be delivered to user once he or she chooses an option for continuation/cancellation.
 Result **must** be printed even if user chooses cancel but the result can be computed immediately.
-
-### Repetition
-It should be possible to consequently repeat computation multiple times for different input.
 
 ## Computations of f and g
 There is an external component with sample trial functions that specifies necessary interfaces. 
@@ -121,10 +125,19 @@ corresponding function again, but not more than 3 times.
 The [WorkerController](src/main/kotlin/manager/controller/WorkerController.kt) returns the result form of the
 [ControllerResult](src/main/kotlin/manager/controller/ControllerResult.kt) sealed class.
 
+All this presses is managed by the [Manager](src/main/kotlin/manager/Manager.kt) class.
+This class is responsible for managing [WorkerController](src/main/kotlin/manager/controller/WorkerController.kt)s,
+showing the cancellation dialog or stopping the execution of the program.
+
 ### Cancellation
-You can stop the execution of the program by pressing the Q key at any time during the functions' computation.
+You can stop the execution of the program by pressing the `Q` key at any time during the functions' computation.
 To implement this the [System Hook](https://github.com/kristian/system-hook) library was used.
 Then, you will be asked whether you want to start again with a different input parameter.
+
+The cancellation dialog can be triggered by the `P` key at any time during the functions' computation.
+The approach for implementation of cancellation dialog was inspired by 
+["How to pause a coroutine"](https://medium.com/mobilepeople/how-to-pause-a-coroutine-31cbd4cf7815) article. 
+You can find the corresponding implementation in [PausingDispatcher](src/main/kotlin/util/PausingDispatcher.kt).
 
 ### Expression value
 For handling the correct expression value to return from the function I am using the 
@@ -132,10 +145,6 @@ For handling the correct expression value to return from the function I am using
 This logic is implemented in the [FSM](src/main/kotlin/manager/FSM.kt) class.
 To prevent state modification simultaneously from different threads I used the kotlin 
 [Mutex](https://kotlinlang.org/docs/shared-mutable-state-and-concurrency.html#mutual-exclusion) approach.
-
-### Repetition
-After the manager finishes working you will be asked whether you want to start again with a different input parameter.
-If you want to proceed, you have to responce with "y" answer. All other inputs will be considered as the refuse.
 
 ## Literature
 There is the list of sources I have used during my work.
