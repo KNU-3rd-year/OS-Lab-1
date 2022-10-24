@@ -3,13 +3,13 @@ import manager.Manager
 import worker.advanced.AdvancedConcatenation
 import kotlin.system.exitProcess
 
-fun main() = runBlocking {
+fun main(): Unit = runBlocking {
     val manager = Manager()
-    manager.start(
+    manager.exe(
         parameter = getParameter(),
         worker = AdvancedConcatenation()
     ).join()
-    startAgain()
+    //startAgain()
 }
 
 private fun getParameter(): Int {

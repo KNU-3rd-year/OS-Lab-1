@@ -7,41 +7,48 @@ import lc.kra.system.keyboard.GlobalKeyboardHook
 import lc.kra.system.keyboard.event.GlobalKeyAdapter
 import lc.kra.system.keyboard.event.GlobalKeyEvent
 import manager.controller.WorkerController
-import util.CalculationResult
-import util.coroutineName
+import util.*
 import worker.Worker
 
 class Manager(
     private val managerScope: CoroutineScope = CoroutineScope(context = Dispatchers.Default),
-    private val workersScope: CoroutineScope = CoroutineScope(context = Dispatchers.IO),
+    workerDispatcher: CoroutineDispatcher = Dispatchers.IO
 ) {
+    private val pausingDispatchQueue: PausingDispatchQueue = PausingDispatchQueue()
+    private val workersScope: CoroutineScope = CoroutineScope(
+        context = PausingDispatcher(
+            queue = pausingDispatchQueue,
+            baseDispatcher = workerDispatcher
+        )
+    )
     private val keyboardHook: GlobalKeyboardHook = GlobalKeyboardHook(true)
     private val globalKeyAdapter: GlobalKeyAdapter = object : GlobalKeyAdapter() {
         override fun keyPressed(event: GlobalKeyEvent) {
-            if (event.virtualKeyCode == GlobalKeyEvent.VK_Q) {
-                workersScope.cancel()
+            when (event.virtualKeyCode) {
+                GlobalKeyEvent.VK_Q -> workersScope.cancel()
+                GlobalKeyEvent.VK_P -> pauseManager()
             }
         }
     }
 
-    fun start(parameter: Int, worker: Worker): Job {
+    fun exe(parameter: Int, worker: Worker) = managerScope.launch {
         addCancelListener()
 
-        return managerScope.launch(CoroutineName("manager")) {
-            when (val result = coordinate(parameter, worker)) {
-                is CalculationResult.Failure -> {
-                    println("The functions G and F has finished their work with the failure.")
-                }
-                is CalculationResult.Success -> {
-                    println("The functions G and F has successfully finished its work.")
-                    println("The result of the function F is ${result.fValue}")
-                    println("The result of the function G is ${result.gValue}")
-                    println("The result of the binary Operation is ${binaryOperation(result.fValue, result.gValue)}")
-                }
+        when (val result = coordinate(parameter, worker)) {
+            is CalculationResult.Failure -> {
+                println("The functions G and F has finished their work with the failure.")
             }
-            if (workersScope.isActive) workersScope.cancel()
-            removeCancelListener()
+            is CalculationResult.Success -> {
+                println("The functions G and F has successfully finished its work.")
+                println("The result of the function F is ${result.fValue}")
+                println("The result of the function G is ${result.gValue}")
+                println("The result of the binary Operation is ${binaryOperation(result.fValue, result.gValue)}")
+            }
         }
+
+        if (workersScope.isActive) workersScope.cancel()
+        removeCancelListener()
+        finishCancelListener()
     }
 
     private suspend fun coordinate(parameter: Int, worker: Worker): CalculationResult {
@@ -72,6 +79,35 @@ class Manager(
         return CalculationResult.Failure(cause = Exception("program was canceled"))
     }
 
+    private fun pauseManager() {
+        val pauseTimeout = 5_000L
+        pausingDispatchQueue.pause()
+        removeCancelListener()
+        CoroutineScope(Dispatchers.Default).launch(CoroutineName("manager-timeout")) {
+            val shouldCancel = withForceTimeoutOrNull(pauseTimeout) {
+                println()
+                println("Timed out waiting for $pauseTimeout ms.")
+                print("Please, confirm that the computation should be stopped (y): ")
+                readlnOrNull()?.equals("y") ?: false
+            }
+
+            when (shouldCancel) {
+                true -> workersScope.cancel()
+                false -> {
+                    println("Proceeding the program...")
+                    addCancelListener()
+                    pausingDispatchQueue.resume()
+                }
+                null -> {
+                    println()
+                    println("The action is not confirmed within 5 seconds.")
+                    addCancelListener()
+                    pausingDispatchQueue.resume()
+                }
+            }
+        }
+    }
+
     private fun binaryOperation(arg1: String, arg2: String): String {
         return arg1 + arg2
     }
@@ -82,6 +118,9 @@ class Manager(
 
     private fun removeCancelListener() {
         keyboardHook.removeKeyListener(globalKeyAdapter)
+    }
+
+    private fun finishCancelListener() {
         keyboardHook.shutdownHook()
     }
 }
