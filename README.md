@@ -76,6 +76,9 @@ If the periodic cancellation is implemented then computation output must **not i
 i.e. all updates should be delivered to user once he or she chooses an option for continuation/cancellation.
 Result **must** be printed even if user chooses cancel but the result can be computed immediately.
 
+### Repetition
+It should be possible to consequently repeat computation multiple times for different input.
+
 ## Computations of f and g
 There is an external component with sample trial functions that specifies necessary interfaces. 
 Make sure to check that your system successfully integrates with external library before submitting your solution. 
@@ -145,6 +148,10 @@ For handling the correct expression value to return from the function I am using
 This logic is implemented in the [FSM](src/main/kotlin/manager/FSM.kt) class.
 To prevent state modification simultaneously from different threads I used the kotlin 
 [Mutex](https://kotlinlang.org/docs/shared-mutable-state-and-concurrency.html#mutual-exclusion) approach.
+
+### Repetition
+After the manager finishes working you will be asked whether you want to start again with a different input parameter.
+If you want to proceed, you have to responce with "y" answer. All other inputs will be considered as the refuse.
 
 ## Literature
 There is the list of sources I have used during my work.

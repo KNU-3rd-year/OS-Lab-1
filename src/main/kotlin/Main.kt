@@ -1,14 +1,19 @@
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import manager.Manager
+import util.withForceTimeoutOrNull
 import worker.advanced.AdvancedConcatenation
 import kotlin.system.exitProcess
 
-fun main(): Unit = runBlocking {
+fun main() {
     val manager = Manager()
-    manager.exe(
-        parameter = getParameter(),
-        worker = AdvancedConcatenation()
-    ).join()
+    runBlocking {
+        manager.exe(
+            parameter = getParameter(),
+            worker = AdvancedConcatenation()
+        ).join()
+    }
+    startAgain()
 }
 
 private fun getParameter(): Int {
@@ -43,4 +48,26 @@ private fun realIntArg(tries: Int = 0): Int {
 
     println("Your input is $x")
     return x
+}
+
+fun startAgain() {
+    val timeout = 4_000L
+    print("\nDo you want to try again with another parameter? To proceed enter \"y\": ")
+
+    val responce = util.runBlocking(context = Dispatchers.IO) {
+        withForceTimeoutOrNull(timeout) {
+            readlnOrNull()?.equals("y")
+        } ?: run {
+            println("\nNo answer in $timeout ms.")
+            println("The answer is thought to be \"no\"")
+            false
+        }
+    }
+
+    if (responce) {
+        println("Let's start again!\n")
+        main()
+    } else {
+        println("See you next time!")
+    }
 }

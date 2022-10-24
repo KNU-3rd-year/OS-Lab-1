@@ -1,10 +1,8 @@
 package util
 
-import kotlinx.coroutines.CoroutineName
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.async
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.*
 import kotlinx.coroutines.selects.select
+import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.coroutineContext
 
 /**
@@ -22,12 +20,25 @@ suspend fun <T> withForceTimeoutOrNull(
     timeMillis: Long,
     block: suspend CoroutineScope.() -> T
 ): T? {
-    val scope = CoroutineScope(context = coroutineContext)
+    val blockScope = CoroutineScope(context = coroutineContext)
+    val timerScope = CoroutineScope(context = Dispatchers.IO)
     return select {
-        scope.async(CoroutineName("async-block")) { block() }.onAwait { it }
-        scope.async(CoroutineName("timer")) {
+        blockScope.async(CoroutineName("async-block")) { block() }.onAwait { it }
+        timerScope.async(CoroutineName("timer")) {
             delay(timeMillis)
             null
         }.onAwait { it }
     }
+}
+
+fun <T> runBlocking(
+    context: CoroutineContext,
+    block: suspend CoroutineScope.() -> T
+): T {
+    var result: T? = null
+    CoroutineScope(context).launch { result = block() }
+    while (result == null) {
+        Thread.sleep(1)
+    }
+    return result!!
 }
